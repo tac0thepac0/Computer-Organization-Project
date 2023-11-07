@@ -36,22 +36,23 @@ void decryptData_01(char *data, int sized)
 		lea edx, [gkey + eax]			// Set ebx = gKey[index]
 		mov edi, data				// Set edi = data
 		XOR_LOOP :
-		cmp ecx, datalength		// If ecx equals the length of buffer -> Jump to done
-			jge DONE
+		cmp ecx, sized		// If ecx equals the length of buffer -> Jump to done
+		jge DONE
 
-			movzx al, [edi]
-			movzx bl, [edx]
-			xor al, bl
-			mov[edi], al
+		movzx al, [edi]
+		movzx bl, [edx]
+		xor al, bl
+		mov[edi], al
 
-			inc ecx					// Move to next character in buffer
-			inc edi
-			jmp XOR_LOOP
+		inc ecx					// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
 
 
-			DONE :							// Clear Stack and Quit
+			
+	DONE :							// Clear Stack and Quit
 		pop edi
-			pop esi
+		pop esi
 	}
 
 	return;
