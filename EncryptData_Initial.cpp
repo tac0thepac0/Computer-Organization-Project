@@ -31,20 +31,21 @@ void encryptData_01(char *data, int datalength)
 		shl eax, 8
 		movzx ebx, [gPasswordHash + 1 + ecx * 4]
 		add eax, ebx
-		mov [ebp-8], eax
+		mov [ebp-8], eax			// Location of starting_index[round] in memory
 
 		// Iterate through each byte in data 
 		xor ecx, ecx
-
 		XOR_LOOP:
-			cmp ecx, datalength
+			cmp ecx, datalength		// If ecx equals the length of buffer -> Jump to done
 			jge DONE
+
+			
 
 			inc ecx
 			jmp XOR_LOOP
 
 
-	DONE:
+	DONE:							// Clear Stack and Quit
 		pop edi
 		pop esi
 	}

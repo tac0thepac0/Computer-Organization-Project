@@ -7,3 +7,5 @@ Members:
 * Patricia Harrison
 * Francisco Rodriguez Vara
 * Yasmeen Uddin
+
+Link to project instructions [here](2023_08_3843_Project.pdf)
