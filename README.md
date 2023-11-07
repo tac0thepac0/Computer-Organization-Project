@@ -1,6 +1,6 @@
 # Computer Organization Project
 
-![build status](https://img.shields.io/badge/In--Progress-text?label=Build&color=yellow)
+![build status](https://img.shields.io/badge/Done-text?label=Build)
 ![milestone number](https://img.shields.io/badge/1-text?label=Milestone)
 
 Members:
