@@ -10,8 +10,6 @@
 
 void encryptData_01(char *data, int datalength)
 {
-	int test[] = { 255,255,255,255,255 };
-
 	__asm
 	{
 		// Set up new stack frame
@@ -31,17 +29,23 @@ void encryptData_01(char *data, int datalength)
 		shl eax, 8
 		movzx ebx, [gPasswordHash + 1 + ecx * 4]
 		add eax, ebx
-		mov [ebp-8], eax			// Location of starting_index[round] in memory
+		mov [ebp-8], eax			// Set index = starting_index[round]
 
 		// Iterate through each byte in data 
-		xor ecx, ecx
+		xor ecx, ecx 
+		lea edx, [gkey+eax]			// Set ebx = gKey[index]
+		mov edi, data				// Set edi = data
 		XOR_LOOP:
 			cmp ecx, datalength		// If ecx equals the length of buffer -> Jump to done
 			jge DONE
 
-			
+			movzx al, [edi]
+			movzx bl, [edx]
+			xor al, bl
+			mov [edi], al 
 
-			inc ecx
+			inc ecx					// Move to next character in buffer
+			inc edi
 			jmp XOR_LOOP
 
 

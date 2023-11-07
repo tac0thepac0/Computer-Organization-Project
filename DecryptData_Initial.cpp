@@ -10,11 +10,48 @@
 
 void decryptData_01(char *data, int sized)
 {
-	int round = 0;
-
 	__asm
 	{
-		nop
+		// Set up new stack frame
+		push esi
+		push edi
+		lea edi, [ebp - 20h]
+		mov ecx, 8
+		mov eax, 0CCCCCCCCh
+		rep stos dword ptr es : [edi]
+
+		// Define a "Round" Variable
+		xor ecx, ecx
+		mov[ebp - 12], ecx
+
+		// starting_index[round] = gPasswordHash[0+round*4] * 256 + gPasswordHash[1+round*4]
+		movzx eax, [gPasswordHash + ecx * 4]
+		shl eax, 8
+		movzx ebx, [gPasswordHash + 1 + ecx * 4]
+		add eax, ebx
+		mov[ebp - 8], eax			// Set index = starting_index[round]
+
+		// Iterate through each byte in data 
+		xor ecx, ecx
+		lea edx, [gkey + eax]			// Set ebx = gKey[index]
+		mov edi, data				// Set edi = data
+		XOR_LOOP :
+		cmp ecx, datalength		// If ecx equals the length of buffer -> Jump to done
+			jge DONE
+
+			movzx al, [edi]
+			movzx bl, [edx]
+			xor al, bl
+			mov[edi], al
+
+			inc ecx					// Move to next character in buffer
+			inc edi
+			jmp XOR_LOOP
+
+
+			DONE :							// Clear Stack and Quit
+		pop edi
+			pop esi
 	}
 
 	return;
