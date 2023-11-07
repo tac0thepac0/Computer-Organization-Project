@@ -8,4 +8,4 @@ Members:
 * Francisco Rodriguez Vara
 * Yasmeen Uddin
 
-Link to project instructions [here](2023_08_3843_Project.pdf)
+Link to project instructions [here](2023_08_CS_3843_Project.pdf)
