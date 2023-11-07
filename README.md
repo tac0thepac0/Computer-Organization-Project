@@ -1,13 +1,8 @@
 # Computer Organization Project
 
-![completion status](https://img.shields.io/badge/Yes-text?label=Incomplete)
-![build status](https://img.shields.io/badge/In--Progress-text?label=Build&color=yellow)
+![completion status](https://img.shields.io/badge/No-text?label=Complete&color=yellow)
+![build status](https://img.shields.io/badge/Done-text?label=Build)
 ![milestone number](https://img.shields.io/badge/2-text?label=Milestone&color=yellow)
-
-Members:
-* Patricia Harrison
-* Francisco Rodriguez Vara
-* Yasmeen Uddin
 
 Link to project instructions [here](2023_08_CS_3843_Project.pdf)
 
