@@ -70,7 +70,7 @@ char gOutFileName[256];
 char gKeyFileName[256];
 int gOp = 0;			// 1 = encrypt, 2 = decrypt
 int gNumRounds = 1;
-int gMilestone = 1;
+int gMilestone = 4;
 
 
 // code to read the file to encrypt
@@ -415,7 +415,7 @@ void parseCommandLine(int argc, char *argv[])
 
 	if(gOp == 0)
 	{
-		fprintf(stderr, "Error! Encrypt or Decrypt must be specified.\n\n)");
+		fprintf(stderr, "Error! Encrypt or Decrypt must be specified.\n\n");
 		err_flag = true;
 	}
 
