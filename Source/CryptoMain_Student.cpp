@@ -106,7 +106,7 @@ int encryptFile(FILE *fptrIn, FILE *fptrOut)
 		break;
 
 	case 2:
-		//encryptData_02(buffer, filesize);	// comment out for student version
+		encryptData_02(buffer, filesize);	
 		break;
 
 	case 3:
@@ -154,7 +154,7 @@ int decryptFile(FILE *fptrIn, FILE *fptrOut)
 		break;
 
 	case 2:
-		//decryptData_02(buffer, filesize);	// comment out for student version
+		decryptData_02(buffer, filesize);
 		break;
 
 	case 3:

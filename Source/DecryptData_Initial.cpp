@@ -38,7 +38,55 @@ void decryptData_01(char *data, int sized)
 			movzx al, [edi]
 			movzx bl, [edx]
 
+			xor al, bl						// data[x] ^ gKey[x]
+
+			mov[edi], al
+			inc ecx							// Move to next character in buffer
+			inc edi
+			jmp XOR_LOOP
+
+						
+	DONE :									// Clear Stack and Quit
+		pop edi
+		pop esi
+	}
+
+	return;
+} // decryptData_01
+
+void decryptData_02(char* data, int sized)
+{
+	__asm
+	{
+		// Set up new stack frame
+		push esi
+		push edi
+		lea edi, [ebp - 20h]
+		mov ecx, 8
+		mov eax, 0CCCCCCCCh
+		rep stos dword ptr es : [edi]
+
+		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
+		movzx eax, [gPasswordHash]
+		shl eax, 8
+		movzx ebx, [gPasswordHash + 1]
+		add eax, ebx
+		mov[ebp - 8], eax				// Set index = starting_index
+
+		// Iterate through each byte in data 
+		xor ecx, ecx
+		lea edx, [gkey + eax]			// Set ebx = gKey[index]
+		mov edi, data					// Set edi = data
+		XOR_LOOP :
+		cmp ecx, sized					// If ecx equals the length of buffer -> Jump to done
+			jge DONE
+
+			movzx al, [edi]
+			movzx bl, [edx]
+
+			// data[x] ^ gKey[x]
 			xor al, bl
+
 			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
 			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
 			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
@@ -50,14 +98,14 @@ void decryptData_01(char *data, int sized)
 			inc edi
 			jmp XOR_LOOP
 
-						
-	DONE :								// Clear Stack and Quit
+
+			DONE :								// Clear Stack and Quit
 		pop edi
-		pop esi
+			pop esi
 	}
 
 	return;
-} // decryptData_01
+} // decryptData_02
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
