@@ -70,7 +70,7 @@ char gOutFileName[256];
 char gKeyFileName[256];
 int gOp = 0;			// 1 = encrypt, 2 = decrypt
 int gNumRounds = 1;
-int gMilestone = 4;
+int gMilestone = 2;
 
 
 // code to read the file to encrypt
