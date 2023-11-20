@@ -31,19 +31,20 @@ void encryptData_01(char *data, int datalength)
 		xor ecx, ecx 
 		lea edx, [gkey+eax]						// Set ebx = gKey[index]
 		mov edi, data							// Set edi = data
-		XOR_LOOP:
-			cmp ecx, datalength					// If ecx equals the length of buffer -> Jump to done
-			jge DONE
+		
+	XOR_LOOP:
+		cmp ecx, datalength					// If ecx equals the length of buffer -> Jump to done
+		jge DONE
 
-			movzx al, [edi]
-			movzx bl, [edx]
+		movzx al, [edi]
+		movzx bl, [edx]
 			
-			xor al, bl							// data[x] ^ gKey[index]
+		xor al, bl							// data[x] ^ gKey[index]
 
-			mov[edi], al
-			inc ecx								// Move to next character in buffer
-			inc edi
-			jmp XOR_LOOP
+		mov[edi], al
+		inc ecx								// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
 
 	DONE:										// Clear Stack and Quit
 		pop edi
@@ -65,40 +66,45 @@ void encryptData_02(char* data, int datalength)
 		mov eax, 0CCCCCCCCh
 		rep stos dword ptr es : [edi]
 
-		// Define a "Round" Variable
-		xor ecx, ecx
-		mov[ebp - 12], ecx
-
-		// starting_index[round] = gPasswordHash[0+round*4] * 256 + gPasswordHash[1+round*4]
-		movzx eax, [gPasswordHash + ecx * 4]
+		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
+		movzx eax, [gPasswordHash]
 		shl eax, 8
-		movzx ebx, [gPasswordHash + 1 + ecx * 4]
+		movzx ebx, [gPasswordHash + 1]
 		add eax, ebx
-		mov[ebp - 8], eax			// Set index = starting_index[round]
+		mov[ebp - 8], eax							// Set index = starting_index
 
 		// Iterate through each byte in data 
 		xor ecx, ecx
-		lea edx, [gkey + eax]			// Set ebx = gKey[index]
-		mov edi, data				// Set edi = data
-		XOR_LOOP :
-		cmp ecx, datalength		// If ecx equals the length of buffer -> Jump to done
-			jge DONE
+		lea edx, [gkey + eax]						// Set ebx = gKey[index]
+		mov edi, data								// Set edi = data
+		
+	XOR_LOOP :
+		cmp ecx, datalength							// If ecx equals the length of buffer -> Jump to done
+		jge DONE
 
-			movzx al, [edi]
-			movzx bl, [edx]
+		movzx al, [edi]
+		movzx bl, [edx]
 
-			// data[x] ^ gKey[x]
-			xor al, bl
+		// data[x] ^ gKey[index]
+		xor al, bl							
 
-			mov[edi], al
-			inc ecx					// Move to next character in buffer
-			inc edi
-			jmp XOR_LOOP
+		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea ebx, [gEncodeTable + eax]
+		movzx al, [ebx]
 
+		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 
-			DONE :							// Clear Stack and Quit
+		mov[edi], al
+		inc ecx										// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
+
+	DONE :											// Clear Stack and Quit
 		pop edi
-			pop esi
+		pop esi
 	}
 
 	return;

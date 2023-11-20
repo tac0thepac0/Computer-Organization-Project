@@ -77,31 +77,38 @@ void decryptData_02(char* data, int sized)
 		xor ecx, ecx
 		lea edx, [gkey + eax]			// Set ebx = gKey[index]
 		mov edi, data					// Set edi = data
-		XOR_LOOP :
+		
+	XOR_LOOP :
 		cmp ecx, sized					// If ecx equals the length of buffer -> Jump to done
-			jge DONE
+		jge DONE
 
-			movzx al, [edi]
-			movzx bl, [edx]
+		movzx al, [edi]					// Copy data[x] into al
 
-			// data[x] ^ gKey[x]
-			xor al, bl
+		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 
-			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
-			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
-			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
-			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
 
-			mov[edi], al
-			inc ecx							// Move to next character in buffer
-			inc edi
-			jmp XOR_LOOP
+		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+
+		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+
+		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea ebx, [gDecodeTable + eax]
+		movzx al, [ebx]
+
+		// data[x] ^ gKey[x]
+		movzx bl, [edx]					// Copy gKey[x] into bl
+		xor al, bl
+
+		mov[edi], al
+		inc ecx							// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
 
 
-			DONE :								// Clear Stack and Quit
+	DONE :								// Clear Stack and Quit
 		pop edi
-			pop esi
+		pop esi
 	}
 
 	return;
