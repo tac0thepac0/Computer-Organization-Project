@@ -59,6 +59,89 @@ void decryptData_01(char *data, int sized)
 	return;
 } // decryptData_01
 
+void decryptData_02(char* data, int sized)
+{
+	__asm
+	{
+		// Set up new stack frame
+		push esi
+		push edi
+		lea edi, [ebp - 20h]
+		mov ecx, 8
+		mov eax, 0CCCCCCCCh
+		rep stos dword ptr es : [edi]
+
+		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
+		movzx eax, [gPasswordHash]
+		shl eax, 8
+		movzx ebx, [gPasswordHash + 1]
+		add eax, ebx
+		mov[ebp - 8], eax				// Set index = starting_index
+
+		// Iterate through each byte in data 
+		xor ecx, ecx
+		lea edx, [gkey + eax]			// Set ebx = gKey[index]
+		mov edi, data					// Set edi = data
+		XOR_LOOP :
+		cmp ecx, sized					// If ecx equals the length of buffer -> Jump to done
+			jge DONE
+
+			movzx al, [edi]
+			movzx bl, [edx]
+
+			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+			ror al, 3
+
+			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+			xor al, 169 //10101001
+			
+			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+			push edx
+			push ecx
+			mov edx, 8
+			xor ecx, ecx
+			xor ebx, ebx
+
+			TEST_LOOP :
+				cmp ecx, edx
+				jge EXIT_LOOP
+
+				clc
+				rcr eax, 1
+				rcl ebx, 1
+
+				inc ecx
+				jmp TEST_LOOP
+
+		EXIT_LOOP :
+			pop ecx
+			pop edx
+			mov al, bl
+
+			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+			rol al, 4
+
+			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+			lea ebx, [gDecodeTable + eax]
+			movzx al, [ebx]
+
+			// data[x] ^ gKey[x]
+			movzx bl, [edx]					// Copy gKey[x] into bl
+			xor al, bl
+
+			mov[edi], al
+			inc ecx							// Move to next character in buffer
+			inc edi
+			jmp XOR_LOOP
+
+
+			DONE :								// Clear Stack and Quit
+		pop edi
+			pop esi
+	}
+
+	return;
+} // decryptData_02
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // EXAMPLE code to show how to access global variables
