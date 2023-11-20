@@ -43,7 +43,10 @@ void encryptData_01(char *data, int datalength)
 			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
 			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
 			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+				xor al, 169 //10101001
 			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+				rol al, 3
+				
 
 			mov[edi], al
 			inc ecx								// Move to next character in buffer

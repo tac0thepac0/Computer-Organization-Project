@@ -42,9 +42,10 @@ void decryptData_01(char *data, int sized)
 			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
 			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
 			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
-			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
 			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
-
+				ror al, 3
+			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+				xor al, 169 //10101001
 			mov[edi], al
 			inc ecx							// Move to next character in buffer
 			inc edi
