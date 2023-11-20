@@ -40,6 +40,7 @@ void decryptData_01(char *data, int sized)
 
 			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
 			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+			rol al, 4
 			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
 			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 			ror al, 3
