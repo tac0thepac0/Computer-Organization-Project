@@ -97,7 +97,7 @@ void encryptData_02(char* data, int datalength)
 		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
 		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 
-		mov[edi], al
+		mov [edi], al
 		inc ecx										// Move to next character in buffer
 		inc edi
 		jmp XOR_LOOP

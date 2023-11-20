@@ -100,7 +100,7 @@ void decryptData_02(char* data, int sized)
 		movzx bl, [edx]					// Copy gKey[x] into bl
 		xor al, bl
 
-		mov[edi], al
+		mov [edi], al
 		inc ecx							// Move to next character in buffer
 		inc edi
 		jmp XOR_LOOP
