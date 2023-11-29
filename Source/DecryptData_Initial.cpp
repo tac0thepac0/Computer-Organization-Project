@@ -75,34 +75,15 @@ void decryptData_02(char* data, int sized)
 		movzx al, [edi]
 		movzx bl, [edx]
 
+		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+		xor al, 10010101b //10101001
+
+		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea   ebx, [gDecodeTable + eax]
+		movzx al,  [ebx]
+
 		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 		ror al, 3
-
-		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-		xor al, 10101001b //10101001
-			
-		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
-		push edx
-		push ecx
-		mov edx, 8
-		xor ecx, ecx
-		xor ebx, ebx
-
-	TEST_LOOP :
-		cmp ecx, edx
-		jge EXIT_LOOP
-
-		clc
-		rcr eax, 1
-		rcl ebx, 1
-
-		inc ecx
-		jmp TEST_LOOP
-
-	EXIT_LOOP :
-		pop ecx
-		pop edx
-		movzx al, bl
 
 		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
 		movzx bl, al
@@ -133,10 +114,29 @@ void decryptData_02(char* data, int sized)
 		and al, 11110000b
 		and bl, 00001111b
 		add al, bl
+			
+		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+		push edx
+		push ecx
+		mov edx, 8
+		xor ecx, ecx
+		xor ebx, ebx
 
-		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
-		lea   ebx, [gDecodeTable + eax]
-		movzx al,  [ebx]
+	TEST_LOOP :
+		cmp ecx, edx
+		jge EXIT_LOOP
+
+		clc
+		rcr eax, 1
+		rcl ebx, 1
+
+		inc ecx
+		jmp TEST_LOOP
+
+	EXIT_LOOP :
+		pop ecx
+		pop edx
+		movzx al, bl
 
 		// data[x] ^ gKey[x]
 		movzx bl, [edx]					// Copy gKey[x] into bl

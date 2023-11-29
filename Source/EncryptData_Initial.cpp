@@ -77,11 +77,30 @@ void encryptData_02(char* data, int datalength)
 		// data[x] ^ gKey[x]
 		xor   al, bl
 
-		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
-		lea   ebx, [gEncodeTable + eax]
-		movzx al, [ebx]
+		//	(#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+		push  edx
+		push  ecx
+		mov   edx, 8
+		xor   ecx, ecx
+		xor   ebx, ebx  
 
-		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+	TEST_LOOP :
+		cmp   ecx, edx
+		jge   EXIT_LOOP
+
+		clc
+		rcr   eax, 1
+		rcl   ebx, 1
+
+		inc   ecx
+		jmp   TEST_LOOP
+
+	EXIT_LOOP :
+		pop    ecx
+		pop    edx
+		mov    al, bl
+
+		//	(#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
 		movzx ebx, al
 
 	LEFT_NIBBLE:
@@ -109,35 +128,16 @@ void encryptData_02(char* data, int datalength)
 		and   bl, 00001111b
 		add   al, bl
 
-		//    (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
-		push  edx
-		push  ecx
-		mov   edx, 8
-		xor   ecx, ecx
-		xor   ebx, ebx  
-
-	TEST_LOOP :
-		cmp   ecx, edx
-		jge   EXIT_LOOP
-
-		clc
-		rcr   eax, 1
-		rcl   ebx, 1
-
-		inc   ecx
-		jmp   TEST_LOOP
-
-	EXIT_LOOP :
-		pop    ecx
-		pop    edx
-		mov    al, bl
-
-		// (   #D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-		xor al, 10101001b //10101001
-
-		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+		//	(#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 		rol    al, 3
-			
+
+		//	(#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea   ebx, [gEncodeTable + eax]
+		movzx al, [ebx]
+
+		//	(#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+		xor al, 10010101b 
+						
 		mov    [edi], al
 		inc    ecx								// Move to next character in buffer
 		inc    edi
