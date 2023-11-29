@@ -12,13 +12,6 @@ void decryptData_01(char *data, int sized)
 {
 	__asm
 	{
-		// Set up new stack frame
-		push esi
-		push edi
-		lea edi, [ebp - 20h]
-		mov ecx, 8
-		mov eax, 0CCCCCCCCh
-		rep stos dword ptr es : [edi]
 
 		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
 		movzx eax, [gPasswordHash]
@@ -51,9 +44,8 @@ void decryptData_01(char *data, int sized)
 			jmp XOR_LOOP
 
 						
-	DONE :								// Clear Stack and Quit
-		pop edi
-		pop esi
+		DONE :						
+
 	}
 
 	return;
@@ -63,13 +55,6 @@ void decryptData_02(char* data, int sized)
 {
 	__asm
 	{
-		// Set up new stack frame
-		push esi
-		push edi
-		lea edi, [ebp - 20h]
-		mov ecx, 8
-		mov eax, 0CCCCCCCCh
-		rep stos dword ptr es : [edi]
 
 		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
 		movzx eax, [gPasswordHash]
@@ -135,9 +120,7 @@ void decryptData_02(char* data, int sized)
 			jmp XOR_LOOP
 
 
-			DONE :								// Clear Stack and Quit
-		pop edi
-			pop esi
+			DONE :								
 	}
 
 	return;

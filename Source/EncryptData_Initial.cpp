@@ -12,13 +12,6 @@ void encryptData_01(char *data, int datalength)
 {
 	__asm
 	{
-		// Set up new stack frame
-		push esi
-		push edi
-		lea edi, [ebp-20h]
-		mov ecx, 8
-		mov eax, 0CCCCCCCCh
-		rep stos dword ptr es:[edi]
 
 		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
 		movzx eax, [gPasswordHash]
@@ -50,9 +43,8 @@ void encryptData_01(char *data, int datalength)
 			inc edi
 			jmp XOR_LOOP
 
-	DONE:										// Clear Stack and Quit
-		pop edi
-		pop esi
+	DONE:										
+	
 	}
 
 	return;
@@ -62,13 +54,6 @@ void encryptData_02(char* data, int datalength)
 {
 	__asm
 	{
-		// Set up new stack frame
-		push esi
-		push edi
-		lea edi, [ebp - 20h]
-		mov ecx, 8
-		mov eax, 0CCCCCCCCh
-		rep stos dword ptr es : [edi]
 
 		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
 		movzx eax, [gPasswordHash]
@@ -132,9 +117,7 @@ void encryptData_02(char* data, int datalength)
 			inc edi
 			jmp XOR_LOOP
 
-			DONE :										// Clear Stack and Quit
-		pop edi
-			pop esi
+			DONE :										
 	}
 
 	return;
