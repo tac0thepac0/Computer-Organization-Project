@@ -61,15 +61,15 @@ void decryptData_02(char* data, int sized)
 		shl eax, 8
 		movzx ebx, [gPasswordHash + 1]
 		add eax, ebx
-		mov[ebp - 8], eax				// Set index = starting_index
+		mov[ebp - 8], eax						// Set index = starting_index
 
 		// Iterate through each byte in data 
 		xor ecx, ecx
-		lea edx, [gkey + eax]			// Set ebx = gKey[index]
-		mov edi, data					// Set edi = data
+		lea edx, [gkey + eax]					// Set ebx = gKey[index]
+		mov edi, data							// Set edi = data
 		
 	XOR_LOOP :
-		cmp ecx, sized					// If ecx equals the length of buffer -> Jump to done
+		cmp ecx, sized							// If ecx equals the length of buffer -> Jump to done
 		jge DONE
 
 		movzx al, [edi]
@@ -79,7 +79,7 @@ void decryptData_02(char* data, int sized)
 		ror al, 3
 
 		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-		xor al, 169 //10101001
+		xor al, 10101001b //10101001
 			
 		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
 		push edx
@@ -102,9 +102,11 @@ void decryptData_02(char* data, int sized)
 	EXIT_LOOP :
 		pop ecx
 		pop edx
-		mov al, bl
+		movzx al, bl
 
 		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+		movzx bl, al
+
 	LEFT_NIBBLE :
 		and al, 11110000b
 		ror al, 1
@@ -121,7 +123,7 @@ void decryptData_02(char* data, int sized)
 		rol bl, 1
 		bt  bl, 4
 		jc JUMP_2
-		jmp DONE
+		jmp NIBBLE_CONCAT
 
 	JUMP_2 :
 		add bl, 00000001b

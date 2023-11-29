@@ -65,10 +65,10 @@ void encryptData_02(char* data, int datalength)
 		// Iterate through each byte in data 
 		xor   ecx, ecx
 		lea   edx, [gkey + eax]						// Set ebx = gKey[index]
-		mov   edi, data							// Set edi = data
+		mov   edi, data								// Set edi = data
 	
 	XOR_LOOP :
-		cmp   ecx, datalength					// If ecx equals the length of buffer -> Jump to done
+		cmp   ecx, datalength						// If ecx equals the length of buffer -> Jump to done
 		jge   DONE
 
 		movzx al, [edi]
@@ -82,28 +82,27 @@ void encryptData_02(char* data, int datalength)
 		movzx al, [ebx]
 
 		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
-			
 		movzx ebx, al
 
 	LEFT_NIBBLE:
-		and   al, 1111000b
-		bt    al, 7
-		rol   al, 1
-		jc    JUMP_1
-		jmp   RIGHT_NIBBLE
+		and al, 11110000b
+		bt  al, 7
+		rol al, 1
+		jc JUMP_1
+		jmp RIGHT_NIBBLE
 
 	JUMP_1:
-		add   al, 00010000b
+		add al, 00010000b
 
 	RIGHT_NIBBLE:
-		and   bl, 0000111b
-		bt    bl, 0
-		ror   bl, 1
-		jc    JUMP_2
+		and bl, 00001111b
+		bt  bl, 0
+		ror bl, 1
+		jc JUMP_2
 		jmp   NIBBLE_CONCAT
 
 	JUMP_2:
-		add   bl, 00001000b
+		add bl, 00001000b
 
 	NIBBLE_CONCAT:
 		and   al, 11110000b
@@ -134,7 +133,7 @@ void encryptData_02(char* data, int datalength)
 		mov    al, bl
 
 		// (   #D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-		xor al, 169 //10101001
+		xor al, 10101001b //10101001
 
 		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
 		rol    al, 3
