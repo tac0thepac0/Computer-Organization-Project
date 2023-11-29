@@ -44,8 +44,8 @@ void encryptData_01(char *data, int length);
 void decryptData_01(char *data, int length);
 void encryptData_02(char *data, int length);
 void decryptData_02(char *data, int length);
-int encryptData_03(char *data, int length);
-int decryptData_03(char *data, int length);
+void encryptData_03(char *data, int length);
+void decryptData_03(char *data, int length);
 
 
 // Global Variable Extern Declarations

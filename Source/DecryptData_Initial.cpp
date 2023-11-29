@@ -154,6 +154,109 @@ void decryptData_02(char* data, int sized)
 	return;
 } // decryptData_02
 
+void decryptData_03(char* data, int sized)
+{
+	__asm
+	{
+
+		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
+		movzx eax, [gPasswordHash]
+		shl eax, 8
+		movzx ebx, [gPasswordHash + 1]
+		add eax, ebx
+		mov[ebp - 8], eax						// Set index = starting_index
+
+		// Iterate through each byte in data 
+		xor ecx, ecx
+		lea edx, [gkey + eax]					// Set ebx = gKey[index]
+		mov edi, data							// Set edi = data
+
+	XOR_LOOP :
+		cmp ecx, sized							// If ecx equals the length of buffer -> Jump to done
+		jge DONE
+
+		movzx al, [edi]
+		movzx bl, [edx]
+
+		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+		xor al, 10010101b //10101001
+
+		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea   ebx, [gDecodeTable + eax]
+		movzx al, [ebx]
+
+		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+		ror al, 3
+
+		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+		movzx bl, al
+
+	LEFT_NIBBLE :
+		and al, 11110000b
+		ror al, 1
+		bt  al, 3
+		jc  JUMP_1
+		jmp RIGHT_NIBBLE
+
+	JUMP_1 :
+		add al, 10000000b
+
+		// Right Nibble Operations
+	RIGHT_NIBBLE :
+		and bl, 00001111b
+		rol bl, 1
+		bt  bl, 4
+		jc JUMP_2
+		jmp NIBBLE_CONCAT
+
+	JUMP_2 :
+		add bl, 00000001b
+
+		// Nibble Concatination
+	NIBBLE_CONCAT :
+		and al, 11110000b
+		and bl, 00001111b
+		add al, bl
+
+		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+		push edx
+		push ecx
+		mov edx, 8
+		xor ecx, ecx
+		xor ebx, ebx
+
+	TEST_LOOP :
+		cmp ecx, edx
+		jge EXIT_LOOP
+
+		clc
+		rcr eax, 1
+		rcl ebx, 1
+
+		inc ecx
+		jmp TEST_LOOP
+
+	EXIT_LOOP :
+		pop ecx
+		pop edx
+		movzx al, bl
+
+	// data[x] ^ gKey[x]
+		movzx bl, [edx]					// Copy gKey[x] into bl
+		xor al, bl
+
+		mov[edi], al
+		inc ecx							// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
+
+
+	DONE :
+	}
+
+	return;
+} // decryptData_03
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // EXAMPLE code to show how to access global variables
 int decryptData(char *data, int dataLength)
