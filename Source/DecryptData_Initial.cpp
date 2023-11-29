@@ -67,60 +67,86 @@ void decryptData_02(char* data, int sized)
 		xor ecx, ecx
 		lea edx, [gkey + eax]			// Set ebx = gKey[index]
 		mov edi, data					// Set edi = data
-		XOR_LOOP :
+		
+	XOR_LOOP :
 		cmp ecx, sized					// If ecx equals the length of buffer -> Jump to done
-			jge DONE
+		jge DONE
 
-			movzx al, [edi]
-			movzx bl, [edx]
+		movzx al, [edi]
+		movzx bl, [edx]
 
-			// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
-			ror al, 3
+		// (#E) rotate 3 bits left 0xDC -> 0xE6 abcd efgh -> defg habc
+		ror al, 3
 
-			// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
-			xor al, 169 //10101001
+		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
+		xor al, 169 //10101001
 			
-			// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
-			push edx
-			push ecx
-			mov edx, 8
-			xor ecx, ecx
-			xor ebx, ebx
+		// (#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
+		push edx
+		push ecx
+		mov edx, 8
+		xor ecx, ecx
+		xor ebx, ebx
 
-			TEST_LOOP :
-				cmp ecx, edx
-				jge EXIT_LOOP
+	TEST_LOOP :
+		cmp ecx, edx
+		jge EXIT_LOOP
 
-				clc
-				rcr eax, 1
-				rcl ebx, 1
+		clc
+		rcr eax, 1
+		rcl ebx, 1
 
-				inc ecx
-				jmp TEST_LOOP
+		inc ecx
+		jmp TEST_LOOP
 
-		EXIT_LOOP :
-			pop ecx
-			pop edx
-			mov al, bl
+	EXIT_LOOP :
+		pop ecx
+		pop edx
+		mov al, bl
 
-			// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
-			rol al, 4
+		// (#B) nibble rotate out 0xC4 -> 0x92 abcd efgh -> bcda hefg
+	LEFT_NIBBLE :
+		and al, 11110000b
+		ror al, 1
+		bt  al, 3
+		jc  JUMP_1
+		jmp RIGHT_NIBBLE
 
-			// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
-			lea ebx, [gDecodeTable + eax]
-			movzx al, [ebx]
+	JUMP_1 :
+		add al, 10000000b
 
-			// data[x] ^ gKey[x]
-			movzx bl, [edx]					// Copy gKey[x] into bl
-			xor al, bl
+		// Right Nibble Operations
+	RIGHT_NIBBLE :
+		and bl, 00001111b
+		rol bl, 1
+		bt  bl, 4
+		jc JUMP_2
+		jmp DONE
 
-			mov[edi], al
-			inc ecx							// Move to next character in buffer
-			inc edi
-			jmp XOR_LOOP
+	JUMP_2 :
+		add bl, 00000001b
+
+		// Nibble Concatination
+	NIBBLE_CONCAT :
+		and al, 11110000b
+		and bl, 00001111b
+		add al, bl
+
+		// (#A) code table swap 0x43 -> CodeTable[0x43] == 0xC4
+		lea   ebx, [gDecodeTable + eax]
+		movzx al,  [ebx]
+
+		// data[x] ^ gKey[x]
+		movzx bl, [edx]					// Copy gKey[x] into bl
+		xor al, bl
+
+		mov[edi], al
+		inc ecx							// Move to next character in buffer
+		inc edi
+		jmp XOR_LOOP
 
 
-			DONE :								
+	DONE :								
 	}
 
 	return;
