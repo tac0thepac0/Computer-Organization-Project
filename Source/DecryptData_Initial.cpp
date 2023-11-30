@@ -174,7 +174,20 @@ void decryptData_03(char* data, int sized)
 		mov edi, data							// Set edi = data
 
 		// hop_count = gPasswordHash[3] * 256 + gPasswordHash[4]
+		movzx eax, [gPasswordHash + 3]
+		shl eax, 8
+		movzx ebx, [gPasswordHash + 4]
+		add eax, ebx
+		mov hop_count, eax
 		// if (hop_count == 0) hop_count == 0xFFFF
+		cmp hop_count, 0
+		jne notZero
+		xor eax, eax
+		mov eax, 0xFFFF
+		mov hop_count, eax
+
+		notZero:
+		
 
 	XOR_LOOP :
 		cmp ecx, sized							// If ecx equals the length of buffer -> Jump to done
@@ -247,10 +260,19 @@ void decryptData_03(char* data, int sized)
 		movzx al, bl
 
 	// index = index + hop_count
+		xor eax, eax
+		mov eax, index
+		add eax, hop_count
+		mov index, eax
 	// if (index >= 65537) index = index - 65537
+		cmp index, 65537
+		jl notge
+		sub index, 65537
+
+		notge:
 
 	// data[x] ^ gKey[index]
-		movzx bl, [edx]					// Copy gKey[index] into bl
+		movzx bl, [gkey + index]					// Copy gKey[index] into bl
 		xor al, bl
 
 		mov[edi], al
