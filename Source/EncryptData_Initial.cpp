@@ -151,6 +151,9 @@ void encryptData_02(char* data, int datalength)
 
 void encryptData_03(char* data, int datalength)
 {
+
+	int starting_index, hop_count;
+
 	__asm
 	{
 		// starting_index = gPasswordHash[0] * 256 + gPasswordHash[1]
@@ -158,7 +161,10 @@ void encryptData_03(char* data, int datalength)
 		shl   eax, 8
 		movzx ebx, [gPasswordHash + 1]
 		add   eax, ebx
-		mov[ebp - 8], eax						// Set index = starting_index
+		mov   starting_index, eax						// Set index = starting_index
+
+		// hop_count = gPasswordHash[3] * 256 + gPasswordHash[4]
+		// if (hop_count == 0) hop_count == 0xFFFF
 
 		// Iterate through each byte in data 
 		xor ecx, ecx
@@ -174,6 +180,9 @@ void encryptData_03(char* data, int datalength)
 
 		// data[x] ^ gKey[x]
 		xor al, bl
+
+		// index = index + hop_count
+		// if (index >= 65537) index = index - 65537
 
 		//	(#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
 		push  edx
