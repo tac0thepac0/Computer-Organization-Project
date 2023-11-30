@@ -156,7 +156,7 @@ void decryptData_02(char* data, int sized)
 
 void decryptData_03(char* data, int sized)
 {
-	int starting_index, hop_count;
+	int index, hop_count;
 
 	__asm
 	{
@@ -166,11 +166,11 @@ void decryptData_03(char* data, int sized)
 		shl eax, 8
 		movzx ebx, [gPasswordHash + 1]
 		add eax, ebx
-		mov starting_index, eax						// Set index = starting_index
+		mov index, eax						// Set index = starting_index
 
 		// Iterate through each byte in data 
 		xor ecx, ecx
-		lea edx, [gkey + eax]					// Set ebx = gKey[index]
+		lea edx, [gkey + index]					// Set ebx = gKey[index]
 		mov edi, data							// Set edi = data
 
 		// hop_count = gPasswordHash[3] * 256 + gPasswordHash[4]
@@ -249,8 +249,8 @@ void decryptData_03(char* data, int sized)
 	// index = index + hop_count
 	// if (index >= 65537) index = index - 65537
 
-	// data[x] ^ gKey[x]
-		movzx bl, [edx]					// Copy gKey[x] into bl
+	// data[x] ^ gKey[index]
+		movzx bl, [edx]					// Copy gKey[index] into bl
 		xor al, bl
 
 		mov[edi], al
