@@ -168,33 +168,31 @@ void decryptData_03(char* data, int sized)
 		add eax, ebx
 		mov index, eax						// Set index = starting_index
 
-		// Iterate through each byte in data 
-		xor ecx, ecx
-		lea edx, [gkey + index]					// Set ebx = gKey[index]
-		mov edi, data							// Set edi = data
-
-		// hop_count = gPasswordHash[3] * 256 + gPasswordHash[4]
-		movzx eax, [gPasswordHash + 3]
+		// hop_count = gPasswordHash[2] * 256 + gPasswordHash[3]
+		movzx eax, [gPasswordHash + 2]
 		shl eax, 8
-		movzx ebx, [gPasswordHash + 4]
+		movzx ebx, [gPasswordHash + 3]
 		add eax, ebx
 		mov hop_count, eax
+
 		// if (hop_count == 0) hop_count == 0xFFFF
 		cmp hop_count, 0
-		jne notZero
+		jne NEXT
 		xor eax, eax
 		mov eax, 0xFFFF
 		mov hop_count, eax
 
-		notZero:
-		
+	NEXT:
+
+		// Iterate through each byte in data 
+		xor ecx, ecx
+		mov edi, data							// Set edi = data
 
 	XOR_LOOP :
 		cmp ecx, sized							// If ecx equals the length of buffer -> Jump to done
 		jge DONE
 
 		movzx al, [edi]
-		movzx bl, [edx]
 
 		// (#D) invert bits 0,2,4,7 0x49 -> 0xDC abcd efgh -> XbcX dXbX
 		xor al, 10010101b //10101001
@@ -259,21 +257,24 @@ void decryptData_03(char* data, int sized)
 		pop edx
 		movzx al, bl
 
-	// index = index + hop_count
+		// data[x] ^ gKey[index]
+		movzx bl, [gkey + index]					// Copy gKey[index] into bl
+		xor al, bl
+
+		// index = index + hop_count
+		push eax
 		xor eax, eax
 		mov eax, index
 		add eax, hop_count
 		mov index, eax
-	// if (index >= 65537) index = index - 65537
+		pop eax
+
+		// if (index >= 65537) index = index - 65537
 		cmp index, 65537
 		jl notge
 		sub index, 65537
 
 		notge:
-
-	// data[x] ^ gKey[index]
-		movzx bl, [gkey + index]					// Copy gKey[index] into bl
-		xor al, bl
 
 		mov[edi], al
 		inc ecx							// Move to next character in buffer

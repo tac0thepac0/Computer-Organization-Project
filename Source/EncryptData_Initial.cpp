@@ -151,7 +151,6 @@ void encryptData_02(char* data, int datalength)
 
 void encryptData_03(char* data, int datalength)
 {
-
 	int index, hop_count;
 
 	__asm
@@ -163,49 +162,50 @@ void encryptData_03(char* data, int datalength)
 		add   eax, ebx
 		mov   index, eax						// Set index = starting_index
 
-//***********************milestone 3 code part 1
-		// hop_count = gPasswordHash[3] * 256 + gPasswordHash[4]
-		movzx eax, [gPasswordHash + 3]
+		// hop_count = gPasswordHash[2] * 256 + gPasswordHash[3]
+		movzx eax, [gPasswordHash + 2]
 		shl eax, 8
-		movzx ebx, [gPasswordHash + 4]
+		movzx ebx, [gPasswordHash + 3]
 		add eax, ebx
 		mov hop_count, eax
+
 		// if (hop_count == 0) hop_count == 0xFFFF
 		cmp hop_count, 0
-		jne notZero
+		jne NEXT
 		xor eax, eax
 		mov eax, 0xFFFF
 		mov hop_count, eax
 
-		notZero :
+	NEXT:
 
 		// Iterate through each byte in data 
 		xor   ecx, ecx
-		lea   edx, [gkey + index]						// Set ebx = gKey[index]
-		mov   edi, data								// Set edi = data
+		mov   edi, data											// Set edi = data
 
 	XOR_LOOP :
-		cmp   ecx, datalength						// If ecx equals the length of buffer -> Jump to done
+		cmp   ecx, datalength									// If ecx equals the length of buffer -> Jump to done
 		jge   DONE
 
-		movzx al, [edi]
-		
+		movzx al, [edi]											// Copy data[x] into al
+		movzx bl, [gkey + index]								// Copy gKey[index] into bl
 
 		// data[x] ^ gKey[index]
-		movzx bl, [gkey + index]								// Copy gKey[index] into bl
 		xor al, bl
-//////////////////////milestone 3 code part 2
-			// index = index + hop_count
-			xor eax, eax
-			mov eax, index
-			add eax, hop_count
-			mov index, eax
-			// if (index >= 65537) index = index - 65537
-			cmp index, 65537
-			jl notge
-			sub index, 65537
+		push eax
 
-			notge:
+		// index = index + hop_count
+		xor eax, eax
+		mov eax, index
+		add eax, hop_count
+		mov index, eax
+		pop eax
+
+		// if (index >= 65537) index = index - 65537
+		cmp index, 65537
+		jl notge
+		sub index, 65537
+
+		notge:
 
 		//	(#C) reverse bit order 0x92 -> 0x49 abcd efgh -> hgfe dcba
 		push  edx
